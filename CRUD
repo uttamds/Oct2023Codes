@@ -1,0 +1,275 @@
+Login.js
+------------
+
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+
+
+import Validation from "./Loginvalidation";
+
+function Login() {
+  const [values, setValues] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleEvent = (event) => {
+    setValues((prev) => ({
+      ...prev,
+      [event.target.name]: [event.target.value],
+    }));
+  };
+  const handleSubmit = (event) => {
+    alert("submit clicked")
+    event.preventDefault();
+    setErrors(Validation(values));
+  };
+  return (
+    <div className="d-flex justify-content-center align-items-center bg-primary vh-100">
+      <div className="bg-white p-3 rounded w-25">
+        <h2>Log In</h2>
+        <form action="" onSubmit={handleSubmit}>
+          
+          <div className="mb-3">
+            <label htmlFor="email">
+              <strong>Email</strong>
+            </label>
+            <input
+              type="email"
+              placeholder="Enter Email"
+              className="form-control rounded-0"
+              name="email"
+              id="email"
+              onChange={handleEvent}
+            />
+            {errors.email && (
+              <span className="text-danger">{errors.email}</span>
+            )}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="password">
+              <strong>Password</strong>
+            </label>
+            <input
+              type="password"
+              placeholder="Enter Password"
+              className="form-control rounded-0"
+              name="password"
+              id="password"
+              onChange={handleEvent}
+            />
+            {errors.password && (
+              <span className="text-danger">{errors.password}</span>
+            )}
+          </div>
+          <button type="submit" className="btn btn-success w-100">
+            Login
+          </button>
+          <p>You agree to our terms and conditions</p>
+
+          <Link to="/Signup" className="btn btn-default border w-100 bg-light">
+            Create New Account
+          </Link>
+          <Link to="/About" className="btn btn-default border w-100 bg-light">
+            About Us{" "}
+          </Link>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default Login;
+================================================
+
+Signup.js
+---------
+
+
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from 'axios';
+
+import Validation from "./Signupvalidation";
+
+
+function Signup() {
+  const [values, setValues] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate;
+  const handleEvent = (event) => {
+    setValues((prev) => ({
+      ...prev,
+      [event.target.name]: [event.target.value],
+    }));
+  };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setErrors(Validation(values));
+
+    if(values.name !== "" && values.email !== "" && values.password !=="")
+    {
+      axios.post('http://localhost:8081/Signup', values)
+      .then((res) => {
+        console.log('success')
+      })
+      .catch((err) => console.log(err))
+    }
+  };
+  return (
+    <div className="d-flex justify-content-center align-items-center bg-primary vh-100">
+      <div className="bg-white p-3 rounded w-25">
+        <h2>Register</h2>
+        <form action="" onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label htmlFor="name">
+              <strong>Name</strong>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter Name"
+              className="form-control rounded-0"
+              name="name"
+              id="name"
+              onChange={handleEvent}
+            />
+            {errors.name && <span className="text-danger">{errors.name}</span>}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="email">
+              <strong>Email</strong>
+            </label>
+            <input
+              type="email"
+              placeholder="Enter Email"
+              className="form-control rounded-0"
+              name="email"
+              id="email"
+              onChange={handleEvent}
+            />
+            {errors.email && (
+              <span className="text-danger">{errors.email}</span>
+            )}
+          </div>
+          <div className="mb-3">
+            <label htmlFor="password">
+              <strong>Password</strong>
+            </label>
+            <input
+              type="password"
+              placeholder="Enter Password"
+              className="form-control rounded-0"
+              name="password"
+              id="password"
+              onChange={handleEvent}
+            />
+            {errors.password && (
+              <span className="text-danger">{errors.password}</span>
+            )}
+          </div>
+          <button type="submit" className="btn btn-warning w-100">
+            Register
+          </button>
+          <p>You agree to our terms and conditions</p>
+
+          <Link to="/" className="btn btn-default border w-100 bg-light">
+            Login{" "}
+          </Link>
+          <Link to="/About" className="btn btn-default border w-100 bg-light">
+            About Us{" "}
+          </Link>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default Signup;
+======================================================
+
+Server.js
+--------
+
+const express = require("express");
+const cors = require("cors");
+const mysql = require("mysql");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "amazon",
+});
+
+app.post("/signup", (req, res) => {
+  
+  const sql = "INSERT INTO register values (?);";
+
+  console.log(req.body.name);
+  const values = [req.body.name, req.body.email, req.body.password];
+  db.query(sql, [values], (err, data) => {
+    if (err) {
+      return res.json("Error");
+    }
+    return res.json(data);
+  });
+});
+
+app.listen(8081, () => {
+  console.log("Backend server is running...");
+});
+
+======================================
+Loginvalidation.js
+---------------------
+
+function Validation(values){
+    let error = {}
+    if (values.email ==="")
+    {
+        error.email = "Email cannot be empty"
+    }
+    if (values.password ==="")
+    {
+        error.password = "Password cannot be empty"
+    }
+
+    return error
+}
+
+export default Validation
+
+============================================
+
+Signupvalidation.js
+--------------------
+function Validation(values) {
+  let error = {};
+  if (values.name === "") {
+    error.name = "Name cannot be empty";
+  }
+  if (values.email === "") {
+    error.email = "Email cannot be empty";
+  }
+  if (values.password === "") {
+    error.password = "Password cannot be empty";
+  }
+
+  return error;
+}
+
+export default Validation;
+
+
+
